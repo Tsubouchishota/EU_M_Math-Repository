@@ -1,0 +1,223 @@
+{
+  "nbformat": 4,
+  "nbformat_minor": 0,
+  "metadata": {
+    "colab": {
+      "provenance": [],
+      "authorship_tag": "ABX9TyPw7oFcqh6HHegYt9WxmA5k",
+      "include_colab_link": true
+    },
+    "kernelspec": {
+      "name": "python3",
+      "display_name": "Python 3"
+    },
+    "language_info": {
+      "name": "python"
+    }
+  },
+  "cells": [
+    {
+      "cell_type": "markdown",
+      "metadata": {
+        "id": "view-in-github",
+        "colab_type": "text"
+      },
+      "source": [
+        "<a href=\"https://colab.research.google.com/github/Tsubouchishota/EU_M_Math-Repository/blob/main/Chap08\" target=\"_parent\"><img src=\"https://colab.research.google.com/assets/colab-badge.svg\" alt=\"Open In Colab\"/></a>"
+      ]
+    },
+    {
+      "cell_type": "code",
+      "execution_count": 28,
+      "metadata": {
+        "colab": {
+          "base_uri": "https://localhost:8080/"
+        },
+        "outputId": "ddf0cb17-dfd1-43e1-a7d6-8b77a1d064b4",
+        "id": "GXKVUdJO2L1V"
+      },
+      "outputs": [
+        {
+          "output_type": "stream",
+          "name": "stdout",
+          "text": [
+            "形式:(205, 26)\n",
+            "自動車データの形式:(199, 5)\n",
+            "データ型の確認(型変換前)\n",
+            "()\n",
+            "\n",
+            "データ型の確認(型変換後)\n",
+            "()\n",
+            "\n",
+            "                price  horsepower     width    height  engine-size  \\\n",
+            "price        1.000000    0.810533  0.753871  0.134990     0.873887   \n",
+            "horsepower   0.810533    1.000000  0.615315 -0.087407     0.822713   \n",
+            "width        0.753871    0.615315  1.000000  0.309223     0.729466   \n",
+            "height       0.134990   -0.087407  0.309223  1.000000     0.075569   \n",
+            "engine-size  0.873887    0.822713  0.729466  0.075569     1.000000   \n",
+            "engine_size  0.873887    0.822713  0.729466  0.075569     1.000000   \n",
+            "\n",
+            "             engine_size  \n",
+            "price           0.873887  \n",
+            "horsepower      0.822713  \n",
+            "width           0.729466  \n",
+            "height          0.075569  \n",
+            "engine-size     1.000000  \n",
+            "engine_size     1.000000  \n",
+            "決定係数(train):0.807\n",
+            "決定係数(test):0.782\n",
+            "\n",
+            "回帰係数\n",
+            "horsepower       11.999590\n",
+            "width          1144.107620\n",
+            "height           91.136137\n",
+            "engine-size      53.707877\n",
+            "engine_size      53.707877\n",
+            "dtype: float64\n",
+            "切片:-82289.137\n",
+            "   price  horsepower  width  height  engine-size  engine_size\n",
+            "0  13495         111   64.1    48.8          130          130\n",
+            "1  16500         111   64.1    48.8          130          130\n",
+            "2  16500         154   65.5    52.4          152          152\n",
+            "3  13950         102   66.2    54.3          109          109\n",
+            "4  17450         115   66.4    54.3          136          136\n",
+            "LinearRegression(train):0.807076\n",
+            "LinearRegression(test):0.782478\n",
+            "Ridge(train):0.807075\n",
+            "Ridge(test):0.782850\n"
+          ]
+        }
+      ],
+      "source": [
+        "from sys import ps1\n",
+        "import requests, zipfile\n",
+        "import io\n",
+        "import pandas as pd\n",
+        "import numpy as np\n",
+        "import numpy.random as random\n",
+        "import scipy as sp\n",
+        "from pandas import Series,DataFrame\n",
+        "\n",
+        "# 自動車価格データを取得\n",
+        "url = 'http://archive.ics.uci.edu/ml/machine-learning-databases/autos/imports-85.data'\n",
+        "res = requests.get(url).content\n",
+        "\n",
+        "# 取得したデータをDataFrameオブジェクトとして読み込み\n",
+        "auto = pd.read_csv(io.StringIO(res.decode('utf-8')), header=None)\n",
+        "\n",
+        "# データの列にラベルを設定\n",
+        "auto.columns =['symboling','normalized-losses','make','fuel-type','aspiration','num-of-doors',\n",
+        "'body-style','drive-wheels','engine-location','wheel-base','length','width','height',\n",
+        "'curb-weight','engine-type','num-of-cylinders','engine-size','fuel-system','bore',\n",
+        "'stroke','compression-ratio','horsepower','peak-rpm','city-mpg','highway-mpg','price']\n",
+        "print('形式:{}'.format(auto.shape))\n",
+        "auto.head()\n",
+        "# 必要な列をすべて含めるように修正\n",
+        "auto = auto[['price','horsepower','width','height','engine-size',]]\n",
+        "auto.isin(['?']).sum()\n",
+        "auto = auto.replace('?',np.nan).dropna()\n",
+        "print('自動車データの形式:{}'.format(auto.shape) )\n",
+        "print('データ型の確認(型変換前)\\n()\\n'.format(auto.dtypes))\n",
+        "\n",
+        "auto = auto.assign(price=pd.to_numeric(auto.price))\n",
+        "auto = auto.assign(horsepower=pd.to_numeric(auto.horsepower))\n",
+        "# engine-sizeも数値型に変換\n",
+        "auto = auto.assign(engine_size=pd.to_numeric(auto['engine-size']))\n",
+        "print('データ型の確認(型変換後)\\n()\\n'.format(auto.dtypes))\n",
+        "\n",
+        "print(auto.corr())\n",
+        "\n",
+        "from sklearn.model_selection import train_test_split\n",
+        "from sklearn.linear_model import LinearRegression\n",
+        "x = auto.drop('price',axis=1)\n",
+        "y = auto['price']\n",
+        "x_train,x_test,y_train,y_test = train_test_split(x,y,test_size=0.5,random_state=0)\n",
+        "model = LinearRegression()\n",
+        "model.fit(x_train,y_train)\n",
+        "\n",
+        "print('決定係数(train):{:.3f}'.format(model.score(x_train,y_train)))\n",
+        "print('決定係数(test):{:.3f}'.format(model.score(x_test,y_test)))\n",
+        "print('\\n回帰係数\\n{}'.format(pd.Series(model.coef_,index=x.columns)))\n",
+        "print('切片:{:.3f}'.format(model.intercept_))\n",
+        "\n",
+        "print(auto.head())\n",
+        "\n",
+        "from sklearn.linear_model import Ridge\n",
+        "from sklearn.model_selection import train_test_split\n",
+        "\n",
+        "x = auto.drop('price',axis=1)\n",
+        "y = auto['price']\n",
+        "x_train,x_test,y_train,y_test = train_test_split(x,y,test_size=0.5,random_state=0)\n",
+        "\n",
+        "linear = LinearRegression()\n",
+        "ridge = Ridge(random_state=0)\n",
+        "for model in [linear,ridge]:\n",
+        "    model.fit(x_train,y_train)\n",
+        "    print('{}(train):{:.6f}'.format(model.__class__.__name__,model.score(x_train,y_train)))\n",
+        "    print('{}(test):{:.6f}'.format(model.__class__.__name__,model.score(x_test,y_test)))"
+      ]
+    },
+    {
+      "cell_type": "code",
+      "metadata": {
+        "colab": {
+          "base_uri": "https://localhost:8080/"
+        },
+        "outputId": "68dc1fc4-4a3c-47d0-d194-d2c70122a9fc",
+        "id": "DNo00m6N5SG_"
+      },
+      "source": [
+        "from sklearn.linear_model import Lasso\n",
+        "from sklearn.metrics import r2_score\n",
+        "\n",
+        "# Lasso回帰モデルのインスタンス化 (デフォルトのalpha=1.0)\n",
+        "lasso_model = Lasso(random_state=0, alpha=1.0)\n",
+        "\n",
+        "# モデルの訓練\n",
+        "lasso_model.fit(x_train, y_train)\n",
+        "\n",
+        "# 訓練データでの予測とR^2スコアの計算\n",
+        "y_train_pred_lasso = lasso_model.predict(x_train)\n",
+        "r2_train_lasso = r2_score(y_train, y_train_pred_lasso)\n",
+        "\n",
+        "# テストデータでの予測とR^2スコアの計算\n",
+        "y_test_pred_lasso = lasso_model.predict(x_test)\n",
+        "r2_test_lasso = r2_score(y_test, y_test_pred_lasso)\n",
+        "\n",
+        "print(f\"Lassoモデル (訓練データ) でのR^2スコア: {r2_train_lasso:.4f}\")\n",
+        "print(f\"Lassoモデル (テストデータ) でのR^2スコア: {r2_test_lasso:.4f}\")\n",
+        "print(f\"\\nLassoモデルの回帰係数:\\n{pd.Series(lasso_model.coef_, index=x.columns)}\")\n",
+        "print(f\"Lassoモデルの切片: {lasso_model.intercept_:.3f}\")"
+      ],
+      "execution_count": 31,
+      "outputs": [
+        {
+          "output_type": "stream",
+          "name": "stdout",
+          "text": [
+            "Lassoモデル (訓練データ) でのR^2スコア: 0.8071\n",
+            "Lassoモデル (テストデータ) でのR^2スコア: 0.7825\n",
+            "\n",
+            "Lassoモデルの回帰係数:\n",
+            "horsepower     1.200060e+01\n",
+            "width          1.143635e+03\n",
+            "height         9.104876e+01\n",
+            "engine-size    1.074363e+02\n",
+            "engine_size    4.818041e-13\n",
+            "dtype: float64\n",
+            "Lassoモデルの切片: -82256.045\n"
+          ]
+        }
+      ]
+    },
+    {
+      "cell_type": "code",
+      "source": [],
+      "metadata": {
+        "id": "CR9l-e4c4sov"
+      },
+      "execution_count": null,
+      "outputs": []
+    }
+  ]
+}
